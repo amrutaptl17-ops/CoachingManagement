@@ -1,20 +1,29 @@
+
 #include "Person.h"
 #include "Faculty.h"
+#include "FeePayment.h"
+#include "FeeManagement.h"
 
+#include <iostream>
 #include <vector>
 #include <fstream>
 #include <limits>
 #include <stdexcept>
 
+using namespace std;
+
 int main() {
     vector<Student> students;
     vector<Faculty> faculties;
 
-    int id;
-    string name, course, subject;
-    double fees, salary;
+    FeeManagement feeManager;
+    feeManager.loadPayments();
 
-    // Load saved students from file
+    int id;
+    string name, course, subject, date;
+    double fees, salary, amount;
+
+    // Load saved students
     ifstream studentFile("students.txt");
 
     while (studentFile >> id) {
@@ -31,7 +40,7 @@ int main() {
 
     studentFile.close();
 
-    // Load saved faculty members from file
+    // Load saved faculty
     ifstream facultyFile("faculty.txt");
 
     while (facultyFile >> id) {
@@ -58,7 +67,10 @@ int main() {
         cout << "4. Add Faculty\n";
         cout << "5. Display Faculty\n";
         cout << "6. Search Faculty\n";
-        cout << "7. Exit\n";
+        cout << "7. Add Fee Payment\n";
+        cout << "8. Display Fee Payments\n";
+        cout << "9. Check Pending Fee\n";
+        cout << "10. Exit\n";
         cout << "Enter choice: ";
 
         cin >> choice;
@@ -94,7 +106,6 @@ int main() {
                     throw invalid_argument("Invalid student details!");
 
                 Student s(id, name, course, fees);
-
                 students.push_back(s);
 
                 ofstream outFile("students.txt", ios::app);
@@ -165,10 +176,8 @@ int main() {
                     throw invalid_argument("Invalid faculty details!");
 
                 Faculty f(id, name, subject, salary);
-
                 faculties.push_back(f);
 
-                // Save Faculty details to file
                 ofstream outFile("faculty.txt", ios::app);
 
                 if (!outFile)
@@ -217,8 +226,51 @@ int main() {
                     cout << "\nFaculty not found!\n";
             }
 
-            // Exit
+            // Add Fee Payment
             else if (choice == 7) {
+                cout << "Enter Student ID: ";
+                cin >> id;
+
+                cout << "Enter Amount Paid: ";
+                cin >> amount;
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+                cout << "Enter Payment Date (DD-MM-YYYY): ";
+                getline(cin, date);
+
+                if (id <= 0 || amount <= 0)
+                    throw invalid_argument("Invalid payment details!");
+
+                FeePayment payment(id, amount, date);
+                feeManager.addPayment(payment);
+            }
+
+            // Display Fee Payments
+            else if (choice == 8) {
+                feeManager.displayPayments();
+            }
+
+            // Check Pending Fee
+            else if (choice == 9) {
+                cout << "Enter Student ID: ";
+                cin >> id;
+
+                cout << "Enter Total Course Fee: ";
+                cin >> fees;
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+                if (id <= 0 || fees < 0)
+                    throw invalid_argument("Invalid fee details!");
+
+                cout << "\nTotal Paid: Rs. "
+                     << feeManager.getTotalPaid(id) << endl;
+
+                cout << "Pending Fee: Rs. "
+                     << feeManager.getPendingFee(id, fees) << endl;
+            }
+
+            // Exit
+            else if (choice == 10) {
                 cout << "\nThank you!\n";
             }
 
@@ -231,7 +283,7 @@ int main() {
             cout << "\nError: " << e.what() << endl;
         }
 
-    } while (choice != 7);
+    } while (choice != 10);
 
     // Template demonstration
     showValue<string>("Coaching Management System");
