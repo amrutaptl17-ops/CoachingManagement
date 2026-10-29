@@ -3,6 +3,7 @@
 #include "Faculty.h"
 #include "FeePayment.h"
 #include "FeeManagement.h"
+#include "Attendence.h"
 
 #include <iostream>
 #include <vector>
@@ -18,6 +19,9 @@ int main() {
 
     FeeManagement feeManager;
     feeManager.loadPayments();
+
+    AttendanceManager attendanceManager;
+    attendanceManager.loadAttendance();
 
     int id;
     string name, course, subject, date;
@@ -70,7 +74,9 @@ int main() {
         cout << "7. Add Fee Payment\n";
         cout << "8. Display Fee Payments\n";
         cout << "9. Check Pending Fee\n";
-        cout << "10. Exit\n";
+        cout << "10. Mark Attendance\n";
+        cout << "11. Display Attendance\n";
+        cout << "12. Exit\n";
         cout << "Enter choice: ";
 
         cin >> choice;
@@ -269,8 +275,57 @@ int main() {
                      << feeManager.getPendingFee(id, fees) << endl;
             }
 
-            // Exit
+            // Mark Attendance
             else if (choice == 10) {
+                cout << "Enter Student ID: ";
+                cin >> id;
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+                if (id <= 0)
+                    throw invalid_argument("Invalid Student ID!");
+
+                bool found = false;
+
+                for (const Student& s : students) {
+                    if (s.getId() == id) {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found)
+                    throw invalid_argument("Student not found!");
+
+                cout << "Enter Date (DD-MM-YYYY): ";
+                getline(cin, date);
+
+                cout << "Enter Status (P = Present, A = Absent): ";
+                char status;
+                cin >> status;
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+                if (date.empty() ||
+                    (status != 'P' && status != 'p' &&
+                     status != 'A' && status != 'a')) {
+                    throw invalid_argument(
+                        "Invalid date or attendance status!");
+                }
+
+                string attendanceStatus =
+                    (status == 'P' || status == 'p')
+                    ? "Present" : "Absent";
+
+                attendanceManager.addAttendance(
+                    id, date, attendanceStatus);
+            }
+
+            // Display Attendance
+            else if (choice == 11) {
+                attendanceManager.displayAttendance();
+            }
+
+            // Exit
+            else if (choice == 12) {
                 cout << "\nThank you!\n";
             }
 
@@ -283,7 +338,7 @@ int main() {
             cout << "\nError: " << e.what() << endl;
         }
 
-    } while (choice != 10);
+    } while (choice != 12);
 
     // Template demonstration
     showValue<string>("Coaching Management System");
